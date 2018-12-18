@@ -86,27 +86,19 @@ namespace pWindowJax
         {
             currentOperation = operation;
 
-            //Make sure the window underneath the cursor is foregrounded.
-            POINT p = User32.GetCursorPos();
-
             // Get the window the user is hovering his cursor over.
-            IntPtr windowHandle = User32.GetAncestor(User32.WindowFromPoint(p), User32.GetAncestorFlags.GA_ROOT);
+            IntPtr windowHandle = WindowsWindowHelper.GetWindowAt(User32.GetCursorPos());
 
-            // ensure that the target window is the foreground window
-            if (windowHandle != IntPtr.Zero && windowHandle != User32.GetForegroundWindow())
-            {
-                //first set the main form window as active...
-                makeWindowActive(Handle);
+            // There is a small chance that the windowhandle can be null.
+            // There is nothing we can do about that.
+            if (windowHandle == null)
+                return;
 
-                // then the tagets window
-                makeWindowActive(windowHandle);
-            }
+            WindowsWindowHelper.EnsureWindowIsInForeground(windowHandle, Handle);
 
-            var info = new User32.WINDOWINFO();
-            User32.GetWindowInfo(windowHandle, ref info);
+            windowSize = WindowsWindowHelper.GetWindowRect(windowHandle);
 
             initialPosition = Cursor.Position;
-            windowSize = info.rcWindow;
 
             new Thread(t =>
             {
@@ -142,20 +134,6 @@ namespace pWindowJax
                     User32.SetWindowPos(windowHandle, IntPtr.Zero, x, y, width, height, 0);
                 }
             }).Start();
-        }
-
-        private void makeWindowActive(IntPtr windowHandle)
-        { 
-            int cursorWindowThreadId = User32.GetWindowThreadProcessId(windowHandle, out int o1);
-            int foregroundWindowThreadId = User32.GetWindowThreadProcessId(User32.GetForegroundWindow(), out int o2);
-
-            if (foregroundWindowThreadId != cursorWindowThreadId)
-                User32.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, true);
-
-            User32.SetForegroundWindow(windowHandle);
-
-            if (foregroundWindowThreadId != cursorWindowThreadId)
-                User32.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, false);
         }
     }
 }
