@@ -41,10 +41,11 @@ namespace pWindowJax
             winPressed &= e.KeyValue != 91;
             shiftPressed &= e.KeyValue != 0xA0;
 
-            if (!ctrlPressed)
-                isOperating = false;
-            else
-                isOperationResizing = false;
+            if (currentOperation == WindowJaxOperation.WindowReposition && !ctrlPressed && !winPressed)
+                currentOperation = null;
+
+            if (currentOperation == WindowJaxOperation.WindowResize && ((!altPressed && !winPressed) || (!ctrlPressed && !winPressed && !shiftPressed)))
+                currentOperation = null;
         }
 
         bool ctrlPressed;
@@ -59,10 +60,14 @@ namespace pWindowJax
             winPressed |= e.KeyValue == 91;
             shiftPressed |= e.KeyValue == 0xA0;
 
+            // a operation is already in process.
+            if (currentOperation != null)
+                return;
+
             if (ctrlPressed && winPressed)
-                startOp(false);
+                startOp(WindowJaxOperation.WindowReposition);
             if ((altPressed && winPressed) || (ctrlPressed && winPressed && shiftPressed))
-                startOp(true);
+                startOp(WindowJaxOperation.WindowResize);
         }
 
         /// <summary>
@@ -75,13 +80,11 @@ namespace pWindowJax
         /// </summary>
         RECT windowSize;
 
-        bool isOperating;
-        bool isOperationResizing;
+        WindowJaxOperation? currentOperation;
 
-        void startOp(bool resize)
+        void startOp(WindowJaxOperation operation)
         {
-            if (isOperating && isOperationResizing == resize)
-                return; //an operation is in progress and is the same type as the one requested.
+            currentOperation = operation;
 
             //Make sure the window underneath the cursor is foregrounded.
             POINT p = User32.GetCursorPos();
@@ -94,11 +97,9 @@ namespace pWindowJax
                 //first set the main form window as active...
                 makeWindowActive(Handle);
 
-                //then switch to the target window.
+                // then the tagets window
                 makeWindowActive(windowHandle);
             }
-
-            isOperationResizing = resize;
 
             IntPtr window = User32.GetForegroundWindow();
             var info = new User32.WINDOWINFO();
@@ -107,19 +108,11 @@ namespace pWindowJax
             initialPosition = Cursor.Position;
             windowSize = info.rcWindow;
 
-            lock (this)
-            {
-                if (isOperating)
-                    return; //an operation has just switch modes from move <-> resize, but is already in progress.
-
-                isOperating = true;
-            }
-
             new Thread(t =>
             {
                 Point lastCursorPosition = Point.Empty;
 
-                while (isOperating)
+                while (currentOperation != null)
                 {
                     if (Cursor.Position == lastCursorPosition)
                     {
@@ -134,12 +127,13 @@ namespace pWindowJax
                     int width = windowSize.right - windowSize.left;
                     int height = windowSize.bottom - windowSize.top;
 
-                    if (isOperationResizing)
+                    if (currentOperation == WindowJaxOperation.WindowResize)
                     {
                         width = width + (lastCursorPosition.X - initialPosition.X);
                         height = height + (lastCursorPosition.Y - initialPosition.Y);
                     }
-                    else
+
+                    if (currentOperation == WindowJaxOperation.WindowReposition)
                     {
                         x = x + (lastCursorPosition.X - initialPosition.X);
                         y = y + (lastCursorPosition.Y - initialPosition.Y);
@@ -151,7 +145,7 @@ namespace pWindowJax
         }
 
         private void makeWindowActive(IntPtr windowHandle)
-        {
+        { 
             int cursorWindowThreadId = User32.GetWindowThreadProcessId(windowHandle, out int o1);
             int foregroundWindowThreadId = User32.GetWindowThreadProcessId(User32.GetForegroundWindow(), out int o2);
 
