@@ -3,10 +3,10 @@ using System.Windows.Forms;
 
 namespace pWindowJax
 {
-    static class Program
+    internal static class Program
     {
         [STAThread]
-        static void Main()
+        internal static void Main()
         {
             Application.Run(new MainController());
         }

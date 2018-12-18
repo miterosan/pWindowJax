@@ -8,7 +8,7 @@ using pWindowJax.Native;
 
 namespace pWindowJax
 {
-    public class MainController : Form
+    internal class MainController : Form
     {
 
         public MainController()
@@ -46,10 +46,8 @@ namespace pWindowJax
             }
         }
 
-        static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
-        static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
-        static readonly IntPtr HWND_TOP = new IntPtr(0);
-        static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
+
+
 
         void keyUp(object sender, KeyEventArgs e)
         {
