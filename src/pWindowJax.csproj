@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="MouseKeyHook" Version="5.6.0" />
+    <PackageReference Include="PInvoke.User32" Version="0.5.155" />
   </ItemGroup>
 
   <ItemGroup>

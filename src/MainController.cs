@@ -3,22 +3,20 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Threading;
 using System.Reflection;
-using pWindowJax.Native;
 using Gma.System.MouseKeyHook;
+using PInvoke;
 
 namespace pWindowJax
 {
     internal class MainController : Form
     {
         private readonly IKeyboardMouseEvents keyboardMouseEvents = Hook.GlobalEvents();
+        private readonly NotifyIcon notifyIcon;
 
         public MainController()
         {
             keyboardMouseEvents.KeyDown += keyDown;
             keyboardMouseEvents.KeyUp += keyUp;
-
-            contextMenu = new ContextMenu();
-            contextMenu.MenuItems.Add("Quit", delegate { Application.Exit(); });
 
             notifyIcon = new NotifyIcon
             {
@@ -26,7 +24,9 @@ namespace pWindowJax
                 Text = "pWindowJax",
                 Visible = true,
 
-                ContextMenu = contextMenu
+                ContextMenu = new ContextMenu(new[] {
+                    new MenuItem("Quit", delegate { Application.Exit(); })
+                })
             };
 
             ShowInTaskbar = false;
@@ -38,16 +38,6 @@ namespace pWindowJax
         {
             base.SetVisibleCore(false);
         }
-
-        protected override CreateParams CreateParams {
-            get {
-                CreateParams pm = base.CreateParams;
-                pm.ExStyle |= 0x80;
-                return pm;
-            }
-        }
-
-
 
 
         void keyUp(object sender, KeyEventArgs e)
@@ -93,8 +83,6 @@ namespace pWindowJax
 
         bool isOperating;
         bool isOperationResizing;
-        private readonly NotifyIcon notifyIcon;
-        private ContextMenu contextMenu;
 
         void startOp(bool resize)
         {
@@ -102,54 +90,25 @@ namespace pWindowJax
                 return; //an operation is in progress and is the same type as the one requested.
 
             //Make sure the window underneath the cursor is foregrounded.
-            if (User32DllImports.GetCursorPos(out POINT p))
+            POINT p = User32.GetCursorPos();
+
+            IntPtr hWnd = User32.WindowFromPoint(p);
+
+            hWnd = User32.GetAncestor(hWnd, User32.GetAncestorFlags.GA_ROOT);
+
+            IntPtr hWndSuccess = hWnd;
+
+            if (hWndSuccess != IntPtr.Zero && hWndSuccess != User32.GetForegroundWindow())
             {
-                IntPtr hWnd = User32DllImports.WindowFromPoint(p);
-                IntPtr hWndSuccess = IntPtr.Zero;
-
-                while (hWnd != IntPtr.Zero)
-                {
-                    hWndSuccess = hWnd;
-                    hWnd = User32DllImports.GetParent(hWnd);
-                }
-
-                if (hWndSuccess != IntPtr.Zero && hWndSuccess != User32DllImports.GetForegroundWindow())
-                {
-                    {
-                        //first set the main form window as active...
-                        uint cursorWindowThreadId = User32DllImports.GetWindowThreadProcessId(Handle, IntPtr.Zero);
-                        uint foregroundWindowThreadId = User32DllImports.GetWindowThreadProcessId(User32DllImports.GetForegroundWindow(), IntPtr.Zero);
-
-                        if (foregroundWindowThreadId != cursorWindowThreadId)
-                            User32DllImports.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, true);
-
-                        User32DllImports.SetForegroundWindow(Handle);
-
-                        if (foregroundWindowThreadId != cursorWindowThreadId)
-                            User32DllImports.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, false);
-                    }
-
-                    {
-                        //then switch to the target window.
-                        uint cursorWindowThreadId = User32DllImports.GetWindowThreadProcessId(hWndSuccess, IntPtr.Zero);
-                        uint foregroundWindowThreadId = User32DllImports.GetWindowThreadProcessId(User32DllImports.GetForegroundWindow(), IntPtr.Zero);
-
-                        if (foregroundWindowThreadId != cursorWindowThreadId)
-                            User32DllImports.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, true);
-
-                        User32DllImports.SetForegroundWindow(hWndSuccess);
-
-                        if (foregroundWindowThreadId != cursorWindowThreadId)
-                            User32DllImports.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, false);
-                    }
-                }
+                setMainFormWindowActive();
+                switchToTargetWindow(hWnd);
             }
 
             isOperationResizing = resize;
 
-            IntPtr window = User32DllImports.GetForegroundWindow();
-            WINDOWINFO info = new WINDOWINFO();
-            User32DllImports.GetWindowInfo(window, ref info);
+            IntPtr window = User32.GetForegroundWindow();
+            var info = new User32.WINDOWINFO();
+            User32.GetWindowInfo(window, ref info);
 
             initialPosition = Cursor.Position;
             windowSize = info.rcWindow;
@@ -176,16 +135,55 @@ namespace pWindowJax
 
                     lastCursorPosition = Cursor.Position;
 
+                    int x = windowSize.left;
+                    int y = windowSize.top;
+                    int width = windowSize.right - windowSize.left;
+                    int height = windowSize.bottom - windowSize.top;
+
                     if (isOperationResizing)
                     {
-                        User32DllImports.SetWindowPos(window, IntPtr.Zero, windowSize.X, windowSize.Y, windowSize.Width + (lastCursorPosition.X - initialPosition.X), windowSize.Height + (lastCursorPosition.Y - initialPosition.Y), 0);
+                        width = width + (lastCursorPosition.X - initialPosition.X);
+                        height = height + (lastCursorPosition.Y - initialPosition.Y);
                     }
                     else
                     {
-                        User32DllImports.SetWindowPos(window, IntPtr.Zero, windowSize.X + (lastCursorPosition.X - initialPosition.X), windowSize.Y + (lastCursorPosition.Y - initialPosition.Y), windowSize.Width, windowSize.Height, 0);
+                        x = x + (lastCursorPosition.X - initialPosition.X);
+                        y = y + (lastCursorPosition.Y - initialPosition.Y);
                     }
+
+                    User32.SetWindowPos(window, IntPtr.Zero, x, y, width, height, 0);
                 }
             }).Start();
+        }
+
+        private void setMainFormWindowActive()
+        {
+            //first set the main form window as active...
+            int cursorWindowThreadId = User32.GetWindowThreadProcessId(Handle, out int o);
+            int foregroundWindowThreadId = User32.GetWindowThreadProcessId(User32.GetForegroundWindow(), out int o2);
+
+            if (foregroundWindowThreadId != cursorWindowThreadId)
+                User32.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, true);
+
+            User32.SetForegroundWindow(Handle);
+
+            if (foregroundWindowThreadId != cursorWindowThreadId)
+                User32.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, false);
+        }
+
+        private void switchToTargetWindow(IntPtr targetWindowHandle)
+        {
+            //then switch to the target window.
+            int cursorWindowThreadId = User32.GetWindowThreadProcessId(targetWindowHandle, out int o1);
+            int foregroundWindowThreadId = User32.GetWindowThreadProcessId(User32.GetForegroundWindow(), out int o2);
+
+            if (foregroundWindowThreadId != cursorWindowThreadId)
+                User32.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, true);
+
+            User32.SetForegroundWindow(targetWindowHandle);
+
+            if (foregroundWindowThreadId != cursorWindowThreadId)
+                User32.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, false);
         }
     }
 }
