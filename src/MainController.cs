@@ -8,7 +8,7 @@ using pWindowJax.Native;
 
 namespace pWindowJax
 {
-    public partial class MainController : Form
+    public class MainController : Form
     {
 
         public MainController()
@@ -21,7 +21,7 @@ namespace pWindowJax
 
             notifyIcon = new NotifyIcon
             {
-                Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("pWindowJax.poop.ico")),
+                Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("pWindowJax.icon.ico")),
                 Text = "pWindowJax",
                 Visible = true,
 
