@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net40</TargetFramework>
+    <StartupObject>pWindowJax.Program</StartupObject>
+    <ApplicationIcon>poop.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

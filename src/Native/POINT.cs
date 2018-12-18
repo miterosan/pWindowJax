@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
-namespace pWindowJax
+namespace pWindowJax.Native
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT
@@ -13,8 +10,8 @@ namespace pWindowJax
 
         public POINT(int x, int y)
         {
-            this.X = x;
-            this.Y = y;
+            X = x;
+            Y = y;
         }
 
         public static implicit operator System.Drawing.Point(POINT p)
