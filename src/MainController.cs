@@ -17,6 +17,7 @@ namespace pWindowJax
         {
             keyboardMouseEvents.KeyDown += keyDown;
             keyboardMouseEvents.KeyUp += keyUp;
+            Visible = false;
 
             notifyIcon = new NotifyIcon
             {
@@ -31,14 +32,7 @@ namespace pWindowJax
 
             ShowInTaskbar = false;
             WindowState = FormWindowState.Minimized;
-            Visible = false;
         }
-
-        protected override void SetVisibleCore(bool value)
-        {
-            base.SetVisibleCore(false);
-        }
-
 
         void keyUp(object sender, KeyEventArgs e)
         {
@@ -92,16 +86,16 @@ namespace pWindowJax
             //Make sure the window underneath the cursor is foregrounded.
             POINT p = User32.GetCursorPos();
 
-            IntPtr hWnd = User32.WindowFromPoint(p);
+            // Get the window the user is hovering its cursor over.
+            IntPtr windowHandle = User32.GetAncestor(User32.WindowFromPoint(p), User32.GetAncestorFlags.GA_ROOT);
 
-            hWnd = User32.GetAncestor(hWnd, User32.GetAncestorFlags.GA_ROOT);
-
-            IntPtr hWndSuccess = hWnd;
-
-            if (hWndSuccess != IntPtr.Zero && hWndSuccess != User32.GetForegroundWindow())
+            if (windowHandle != IntPtr.Zero && windowHandle != User32.GetForegroundWindow())
             {
-                setMainFormWindowActive();
-                switchToTargetWindow(hWnd);
+                //first set the main form window as active...
+                makeWindowActive(Handle);
+
+                //then switch to the target window.
+                makeWindowActive(windowHandle);
             }
 
             isOperationResizing = resize;
@@ -156,31 +150,15 @@ namespace pWindowJax
             }).Start();
         }
 
-        private void setMainFormWindowActive()
+        private void makeWindowActive(IntPtr windowHandle)
         {
-            //first set the main form window as active...
-            int cursorWindowThreadId = User32.GetWindowThreadProcessId(Handle, out int o);
+            int cursorWindowThreadId = User32.GetWindowThreadProcessId(windowHandle, out int o1);
             int foregroundWindowThreadId = User32.GetWindowThreadProcessId(User32.GetForegroundWindow(), out int o2);
 
             if (foregroundWindowThreadId != cursorWindowThreadId)
                 User32.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, true);
 
-            User32.SetForegroundWindow(Handle);
-
-            if (foregroundWindowThreadId != cursorWindowThreadId)
-                User32.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, false);
-        }
-
-        private void switchToTargetWindow(IntPtr targetWindowHandle)
-        {
-            //then switch to the target window.
-            int cursorWindowThreadId = User32.GetWindowThreadProcessId(targetWindowHandle, out int o1);
-            int foregroundWindowThreadId = User32.GetWindowThreadProcessId(User32.GetForegroundWindow(), out int o2);
-
-            if (foregroundWindowThreadId != cursorWindowThreadId)
-                User32.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, true);
-
-            User32.SetForegroundWindow(targetWindowHandle);
+            User32.SetForegroundWindow(windowHandle);
 
             if (foregroundWindowThreadId != cursorWindowThreadId)
                 User32.AttachThreadInput(foregroundWindowThreadId, cursorWindowThreadId, false);
