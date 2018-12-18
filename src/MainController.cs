@@ -17,7 +17,6 @@ namespace pWindowJax
         {
             keyboardMouseEvents.KeyDown += keyDown;
             keyboardMouseEvents.KeyUp += keyUp;
-            Visible = false;
 
             notifyIcon = new NotifyIcon
             {
@@ -32,7 +31,13 @@ namespace pWindowJax
 
             ShowInTaskbar = false;
             WindowState = FormWindowState.Minimized;
+            Visible = false;
         }
+
+        bool ctrlPressed;
+        bool altPressed;
+        bool winPressed;
+        bool shiftPressed;
 
         void keyUp(object sender, KeyEventArgs e)
         {
@@ -47,11 +52,6 @@ namespace pWindowJax
             if (currentOperation == WindowJaxOperation.WindowResize && ((!altPressed && !winPressed) || (!ctrlPressed && !winPressed && !shiftPressed)))
                 currentOperation = null;
         }
-
-        bool ctrlPressed;
-        bool altPressed;
-        bool winPressed;
-        bool shiftPressed;
 
         void keyDown(object sender, KeyEventArgs e)
         {
@@ -89,9 +89,10 @@ namespace pWindowJax
             //Make sure the window underneath the cursor is foregrounded.
             POINT p = User32.GetCursorPos();
 
-            // Get the window the user is hovering its cursor over.
+            // Get the window the user is hovering his cursor over.
             IntPtr windowHandle = User32.GetAncestor(User32.WindowFromPoint(p), User32.GetAncestorFlags.GA_ROOT);
 
+            // ensure that the target window is the foreground window
             if (windowHandle != IntPtr.Zero && windowHandle != User32.GetForegroundWindow())
             {
                 //first set the main form window as active...
@@ -101,9 +102,8 @@ namespace pWindowJax
                 makeWindowActive(windowHandle);
             }
 
-            IntPtr window = User32.GetForegroundWindow();
             var info = new User32.WINDOWINFO();
-            User32.GetWindowInfo(window, ref info);
+            User32.GetWindowInfo(windowHandle, ref info);
 
             initialPosition = Cursor.Position;
             windowSize = info.rcWindow;
@@ -139,7 +139,7 @@ namespace pWindowJax
                         y = y + (lastCursorPosition.Y - initialPosition.Y);
                     }
 
-                    User32.SetWindowPos(window, IntPtr.Zero, x, y, width, height, 0);
+                    User32.SetWindowPos(windowHandle, IntPtr.Zero, x, y, width, height, 0);
                 }
             }).Start();
         }
