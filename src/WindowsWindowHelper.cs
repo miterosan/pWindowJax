@@ -1,5 +1,6 @@
 ﻿using PInvoke;
 using System;
+using System.Drawing;
 
 namespace pWindowJax
 {
@@ -10,12 +11,20 @@ namespace pWindowJax
             return User32.GetAncestor(User32.WindowFromPoint(p), User32.GetAncestorFlags.GA_ROOT);
         }
 
-        public static RECT GetWindowRect(IntPtr windowHandle)
+        public static Rectangle GetWindowRect(IntPtr windowHandle)
         {
             var info = new User32.WINDOWINFO();
+
             User32.GetWindowInfo(windowHandle, ref info);
 
-            return info.rcWindow;
+            var rect = info.rcWindow;
+
+            return Rectangle.FromLTRB(rect.left, rect.top, rect.right, rect.bottom);
+        }
+
+        public static void UpdateWindowRect(IntPtr windowHandle, Rectangle newRectangle)
+        {
+            User32.SetWindowPos(windowHandle, IntPtr.Zero, newRectangle.X, newRectangle.Y, newRectangle.Width, newRectangle.Height, 0);
         }
 
         /// <summary>

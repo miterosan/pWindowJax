@@ -78,7 +78,7 @@ namespace pWindowJax
         /// <summary>
         /// Size of the window when move/resize operation began.
         /// </summary>
-        RECT windowSize;
+        Rectangle initialWindowRect;
 
         WindowJaxOperation? currentOperation;
 
@@ -96,7 +96,7 @@ namespace pWindowJax
 
             WindowsWindowHelper.EnsureWindowIsInForeground(windowHandle, Handle);
 
-            windowSize = WindowsWindowHelper.GetWindowRect(windowHandle);
+            initialWindowRect = WindowsWindowHelper.GetWindowRect(windowHandle);
 
             initialPosition = Cursor.Position;
 
@@ -114,24 +114,21 @@ namespace pWindowJax
 
                     lastCursorPosition = Cursor.Position;
 
-                    int x = windowSize.left;
-                    int y = windowSize.top;
-                    int width = windowSize.right - windowSize.left;
-                    int height = windowSize.bottom - windowSize.top;
+                    Rectangle offsettedRect = new Rectangle(initialWindowRect.Location, initialWindowRect.Size);
 
                     if (currentOperation == WindowJaxOperation.WindowResize)
                     {
-                        width = width + (lastCursorPosition.X - initialPosition.X);
-                        height = height + (lastCursorPosition.Y - initialPosition.Y);
+                        offsettedRect.Width += lastCursorPosition.X - initialPosition.X;
+                        offsettedRect.Height += lastCursorPosition.Y - initialPosition.Y;
                     }
 
                     if (currentOperation == WindowJaxOperation.WindowReposition)
                     {
-                        x = x + (lastCursorPosition.X - initialPosition.X);
-                        y = y + (lastCursorPosition.Y - initialPosition.Y);
+                        offsettedRect.X += lastCursorPosition.X - initialPosition.X;
+                        offsettedRect.Y += lastCursorPosition.Y - initialPosition.Y;
                     }
 
-                    User32.SetWindowPos(windowHandle, IntPtr.Zero, x, y, width, height, 0);
+                    WindowsWindowHelper.UpdateWindowRect(windowHandle, offsettedRect);
                 }
             }).Start();
         }
