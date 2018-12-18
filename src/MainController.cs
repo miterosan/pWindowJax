@@ -2,19 +2,20 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Threading;
-using Gma.UserActivityMonitor;
 using System.Reflection;
 using pWindowJax.Native;
+using Gma.System.MouseKeyHook;
 
 namespace pWindowJax
 {
     internal class MainController : Form
     {
+        private readonly IKeyboardMouseEvents keyboardMouseEvents = Hook.GlobalEvents();
 
         public MainController()
         {
-            HookManager.KeyDown += keyDown;
-            HookManager.KeyUp += keyUp;
+            keyboardMouseEvents.KeyDown += keyDown;
+            keyboardMouseEvents.KeyUp += keyUp;
 
             contextMenu = new ContextMenu();
             contextMenu.MenuItems.Add("Quit", delegate { Application.Exit(); });
