@@ -41,10 +41,10 @@ namespace pWindowJax
 
         void keyUp(object sender, KeyEventArgs e)
         {
-            ctrlPressed &= e.KeyValue != 162;
-            altPressed &= e.KeyValue != 164;
-            winPressed &= e.KeyValue != 91;
-            shiftPressed &= e.KeyValue != 0xA0;
+            ctrlPressed &= (int)Keys.LControlKey == e.KeyValue;
+            altPressed &= (int)Keys.LMenu == e.KeyValue;
+            winPressed &= (int)Keys.LWin == e.KeyValue;
+            shiftPressed &= (int)Keys.LShiftKey == e.KeyValue;
 
             if (currentOperation == WindowJaxOperation.WindowReposition && !ctrlPressed && !winPressed)
                 currentOperation = null;
@@ -55,10 +55,10 @@ namespace pWindowJax
 
         void keyDown(object sender, KeyEventArgs e)
         {
-            ctrlPressed |= e.KeyValue == 162;
-            altPressed |= e.KeyValue == 164;
-            winPressed |= e.KeyValue == 91;
-            shiftPressed |= e.KeyValue == 0xA0;
+            ctrlPressed |= (int)Keys.LControlKey == e.KeyValue;
+            altPressed |= (int)Keys.LMenu == e.KeyValue;
+            winPressed |= (int)Keys.LWin == e.KeyValue;
+            shiftPressed |= (int)Keys.LShiftKey == e.KeyValue;
 
             // a operation is already in process.
             if (currentOperation != null)
@@ -89,7 +89,7 @@ namespace pWindowJax
             // Get the window the user is hovering his cursor over.
             IntPtr windowHandle = WindowsWindowHelper.GetWindowAt(User32.GetCursorPos());
 
-            // There is a small chance that the windowhandle can be null.
+            // There is a small chance that the windowhandle is null.
             // There is nothing we can do about that.
             if (windowHandle == null)
                 return;
@@ -115,6 +115,7 @@ namespace pWindowJax
                     lastCursorPosition = Cursor.Position;
 
                     Rectangle offsettedRect = new Rectangle(initialWindowRect.Location, initialWindowRect.Size);
+
 
                     if (currentOperation == WindowJaxOperation.WindowResize)
                     {
