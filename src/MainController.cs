@@ -14,14 +14,14 @@ namespace pWindowJax
     {
         private readonly IKeyboardMouseEvents keyboardMouseEvents = Hook.GlobalEvents();
         private readonly NotifyIcon notifyIcon;
-        private readonly List<Keys> pressedKeys = new List<Keys>();
+        private readonly HashSet<Keys> pressedKeys = new HashSet<Keys>();
 
-        private readonly List<Keys> repositionKeyCombination = new List<Keys>
+        private readonly HashSet<Keys> repositionKeyCombination = new HashSet<Keys>
         {
             Keys.LControlKey, Keys.LWin
         };
 
-        private readonly List<Keys> resizeKeyCombinations = new List<Keys>
+        private readonly HashSet<Keys> resizeKeyCombinations = new HashSet<Keys>
         {
             Keys.LMenu, Keys.LWin
         };
@@ -64,14 +64,13 @@ namespace pWindowJax
         {
             Keys key = (Keys)e.KeyValue;
 
-            if (pressedKeys.Contains(key) || currentOperation != null)
+            if (!pressedKeys.Add(key) || currentOperation != null)
                 return;
 
-            pressedKeys.Add(key);
-
-            if (!repositionKeyCombination.Except(pressedKeys).Any())
+            if (!repositionKeyCombination.IsSubsetOf(pressedKeys))
                 startOp(WindowJaxOperation.WindowReposition);
-            if (!resizeKeyCombinations.Except(pressedKeys).Any())
+
+            if (!resizeKeyCombinations.IsSubsetOf(pressedKeys))
                 startOp(WindowJaxOperation.WindowResize);
         }
 
