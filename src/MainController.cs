@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Threading;
 using System.Reflection;
 using Gma.System.MouseKeyHook;
 using PInvoke;
+using System.Collections.Generic;
 
 namespace pWindowJax
 {
@@ -12,6 +14,17 @@ namespace pWindowJax
     {
         private readonly IKeyboardMouseEvents keyboardMouseEvents = Hook.GlobalEvents();
         private readonly NotifyIcon notifyIcon;
+        private readonly List<Keys> pressedKeys = new List<Keys>();
+
+        private readonly List<Keys> repositionKeyCombination = new List<Keys>
+        {
+            Keys.LControlKey, Keys.LWin
+        };
+
+        private readonly List<Keys> resizeKeyCombinations = new List<Keys>
+        {
+            Keys.LMenu, Keys.LWin
+        };
 
         public MainController()
         {
@@ -34,39 +47,31 @@ namespace pWindowJax
             Visible = false;
         }
 
-        bool ctrlPressed;
-        bool altPressed;
-        bool winPressed;
-        bool shiftPressed;
-
         void keyUp(object sender, KeyEventArgs e)
         {
-            ctrlPressed &= (int)Keys.LControlKey == e.KeyValue;
-            altPressed &= (int)Keys.LMenu == e.KeyValue;
-            winPressed &= (int)Keys.LWin == e.KeyValue;
-            shiftPressed &= (int)Keys.LShiftKey == e.KeyValue;
+            Keys key = (Keys)e.KeyValue;
 
-            if (currentOperation == WindowJaxOperation.WindowReposition && !ctrlPressed && !winPressed)
+            pressedKeys.Remove(key);
+
+            if (currentOperation == WindowJaxOperation.WindowReposition && repositionKeyCombination.Contains(key))
                 currentOperation = null;
 
-            if (currentOperation == WindowJaxOperation.WindowResize && ((!altPressed && !winPressed) || (!ctrlPressed && !winPressed && !shiftPressed)))
+            if (currentOperation == WindowJaxOperation.WindowResize && resizeKeyCombinations.Contains(key))
                 currentOperation = null;
         }
 
         void keyDown(object sender, KeyEventArgs e)
         {
-            ctrlPressed |= (int)Keys.LControlKey == e.KeyValue;
-            altPressed |= (int)Keys.LMenu == e.KeyValue;
-            winPressed |= (int)Keys.LWin == e.KeyValue;
-            shiftPressed |= (int)Keys.LShiftKey == e.KeyValue;
+            Keys key = (Keys)e.KeyValue;
 
-            // a operation is already in process.
-            if (currentOperation != null)
+            if (pressedKeys.Contains(key) || currentOperation != null)
                 return;
 
-            if (ctrlPressed && winPressed)
+            pressedKeys.Add(key);
+
+            if (!repositionKeyCombination.Except(pressedKeys).Any())
                 startOp(WindowJaxOperation.WindowReposition);
-            if ((altPressed && winPressed) || (ctrlPressed && winPressed && shiftPressed))
+            if (!resizeKeyCombinations.Except(pressedKeys).Any())
                 startOp(WindowJaxOperation.WindowResize);
         }
 
