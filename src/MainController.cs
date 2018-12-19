@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Threading;
 using System.Reflection;
-using Gma.System.MouseKeyHook;
 using PInvoke;
 using System.Collections.Generic;
 
@@ -12,25 +10,11 @@ namespace pWindowJax
 {
     internal class MainController : Form
     {
-        private readonly IKeyboardMouseEvents keyboardMouseEvents = Hook.GlobalEvents();
         private readonly NotifyIcon notifyIcon;
-        private readonly HashSet<Keys> pressedKeys = new HashSet<Keys>();
-
-        private readonly HashSet<Keys> repositionKeyCombination = new HashSet<Keys>
-        {
-            Keys.LControlKey, Keys.LWin
-        };
-
-        private readonly HashSet<Keys> resizeKeyCombinations = new HashSet<Keys>
-        {
-            Keys.LMenu, Keys.LWin
-        };
+        private readonly GlobalKeyCombinationWatcher<WindowJaxOperation> watcher = new GlobalKeyCombinationWatcher<WindowJaxOperation>();
 
         public MainController()
         {
-            keyboardMouseEvents.KeyDown += keyDown;
-            keyboardMouseEvents.KeyUp += keyUp;
-
             notifyIcon = new NotifyIcon
             {
                 Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("pWindowJax.icon.ico")),
@@ -42,49 +26,54 @@ namespace pWindowJax
                 })
             };
 
+            watcher.ActionChanged += actionChanged;
+
+            watcher.KeyCombinations.Add(new HashSet<Keys>
+            {
+                Keys.LControlKey, Keys.LWin
+            }, WindowJaxOperation.WindowReposition);
+
+            watcher.KeyCombinations.Add(new HashSet<Keys>
+            {
+                Keys.LMenu, Keys.LWin
+            }, WindowJaxOperation.WindowResize);
+
+            watcher.KeyCombinations.Add(new HashSet<Keys>
+            {
+                Keys.LWin, Keys.LShiftKey, Keys.LControlKey
+            }, WindowJaxOperation.WindowResize);
+
             ShowInTaskbar = false;
             WindowState = FormWindowState.Minimized;
             Visible = false;
         }
 
-        void keyUp(object sender, KeyEventArgs e)
+        void actionChanged()
         {
-            Keys key = (Keys)e.KeyValue;
-
-            pressedKeys.Remove(key);
-
-            if (currentOperation == WindowJaxOperation.WindowReposition && repositionKeyCombination.Contains(key))
-                currentOperation = null;
-
-            if (currentOperation == WindowJaxOperation.WindowResize && resizeKeyCombinations.Contains(key))
-                currentOperation = null;
-        }
-
-        void keyDown(object sender, KeyEventArgs e)
-        {
-            Keys key = (Keys)e.KeyValue;
-
-            if (!pressedKeys.Add(key) || currentOperation != null)
+            if (watcher.CurrentAction == currentOperation)
                 return;
 
-            if (!repositionKeyCombination.IsSubsetOf(pressedKeys))
-                startOp(WindowJaxOperation.WindowReposition);
+            // end the current operation if the combination is released
+            if (watcher.CurrentAction == WindowJaxOperation.Idle || currentOperation != WindowJaxOperation.Idle)
+            {
+                currentOperation = WindowJaxOperation.Idle;
+                return;
+            }
 
-            if (!resizeKeyCombinations.IsSubsetOf(pressedKeys))
-                startOp(WindowJaxOperation.WindowResize);
+            startOp(watcher.CurrentAction);
         }
 
         /// <summary>
         /// Position of the window when move/resize operation began.
         /// </summary>
-        Point initialPosition;
+        Point initialMousePosition;
 
         /// <summary>
         /// Size of the window when move/resize operation began.
         /// </summary>
         Rectangle initialWindowRect;
 
-        WindowJaxOperation? currentOperation;
+        WindowJaxOperation currentOperation = WindowJaxOperation.Idle;
 
         void startOp(WindowJaxOperation operation)
         {
@@ -102,13 +91,13 @@ namespace pWindowJax
 
             initialWindowRect = WindowsWindowHelper.GetWindowRect(windowHandle);
 
-            initialPosition = Cursor.Position;
+            initialMousePosition = Cursor.Position;
 
             new Thread(t =>
             {
                 Point lastCursorPosition = Point.Empty;
 
-                while (currentOperation != null)
+                while (currentOperation != WindowJaxOperation.Idle)
                 {
                     if (Cursor.Position == lastCursorPosition)
                     {
@@ -123,14 +112,14 @@ namespace pWindowJax
 
                     if (currentOperation == WindowJaxOperation.WindowResize)
                     {
-                        offsettedRect.Width += lastCursorPosition.X - initialPosition.X;
-                        offsettedRect.Height += lastCursorPosition.Y - initialPosition.Y;
+                        offsettedRect.Width += lastCursorPosition.X - initialMousePosition.X;
+                        offsettedRect.Height += lastCursorPosition.Y - initialMousePosition.Y;
                     }
 
                     if (currentOperation == WindowJaxOperation.WindowReposition)
                     {
-                        offsettedRect.X += lastCursorPosition.X - initialPosition.X;
-                        offsettedRect.Y += lastCursorPosition.Y - initialPosition.Y;
+                        offsettedRect.X += lastCursorPosition.X - initialMousePosition.X;
+                        offsettedRect.Y += lastCursorPosition.Y - initialMousePosition.Y;
                     }
 
                     WindowsWindowHelper.UpdateWindowRect(windowHandle, offsettedRect);
