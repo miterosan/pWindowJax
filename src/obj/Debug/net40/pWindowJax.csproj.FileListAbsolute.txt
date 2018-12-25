@@ -1,8 +1,0 @@
-D:\Repositories\pWindowJax\src\bin\Debug\net40\pWindowJax.exe
-D:\Repositories\pWindowJax\src\bin\Debug\net40\pWindowJax.pdb
-D:\Repositories\pWindowJax\src\obj\Debug\net40\pWindowJax.csproj.CoreCompileInputs.cache
-D:\Repositories\pWindowJax\src\obj\Debug\net40\pWindowJax.AssemblyInfoInputs.cache
-D:\Repositories\pWindowJax\src\obj\Debug\net40\pWindowJax.AssemblyInfo.cs
-D:\Repositories\pWindowJax\src\obj\Debug\net40\pWindowJax.exe
-D:\Repositories\pWindowJax\src\obj\Debug\net40\pWindowJax.pdb
-D:\Repositories\pWindowJax\src\obj\Debug\net40\pWindowJax.csprojAssemblyReference.cache
