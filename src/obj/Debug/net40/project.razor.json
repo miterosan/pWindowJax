@@ -1,0 +1,14 @@
+{
+  "ProjectFilePath": "d:\\Repositories\\pWindowJax\\src\\pWindowJax.csproj",
+  "TargetFramework": "net40",
+  "TagHelpers": [],
+  "Configuration": {
+    "ConfigurationName": "UnsupportedRazor",
+    "LanguageVersion": "1.0",
+    "Extensions": [
+      {
+        "ExtensionName": "UnsupportedRazorExtension"
+      }
+    ]
+  }
+}
