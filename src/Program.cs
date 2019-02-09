@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Squirrel;
+using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace pWindowJax
@@ -6,9 +8,18 @@ namespace pWindowJax
     internal static class Program
     {
         [STAThread]
-        internal static void Main()
+        internal static async Task Main()
         {
-            Application.Run(new MainController());
+            using (var updateManager = await UpdateManager.GitHubUpdateManager("https://github.com/miterosan/pWindowJax"))
+            {
+                var release = await updateManager.UpdateApp();
+
+                if (release != null)
+                    UpdateManager.RestartApp();
+            }
+
+
+                Application.Run(new MainController());
         }
     }
 }
