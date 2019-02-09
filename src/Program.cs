@@ -1,5 +1,6 @@
 ﻿using Squirrel;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -16,10 +17,12 @@ namespace pWindowJax
 
                 if (release != null)
                     UpdateManager.RestartApp();
+
+                updateManager.CreateShortcutsForExecutable(Assembly.GetEntryAssembly().Location, ShortcutLocation.Startup, false);
             }
+            
 
-
-                Application.Run(new MainController());
+            Application.Run(new MainController());
         }
     }
 }
