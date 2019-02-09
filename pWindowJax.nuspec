@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>pWindowJax</id>
+    <version>1.0.0.0</version>
+    <title>pWindowJax</title>
+    <authors>miterosan</authors>
+    <description>Resize and move windows</description>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <copyright>Miterosan (c) 2019</copyright>
+  </metadata>
+  <files>
+    <file src="src\bin\Release\net471\*.*" target="lib\net45\" exclude="**/*.pdb;**/*.nupkg;**/*.vshost.*"/>
+  </files>
+</package>
