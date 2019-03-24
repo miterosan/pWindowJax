@@ -10,6 +10,7 @@ namespace pWindowJax
 {
     internal class MainController : Form
     {
+        public string Version { get; set; }
         private readonly NotifyIcon notifyIcon;
         private readonly GlobalKeyCombinationWatcher<WindowJaxOperation> watcher = new GlobalKeyCombinationWatcher<WindowJaxOperation>();
 
@@ -22,7 +23,7 @@ namespace pWindowJax
                 Visible = true,
 
                 ContextMenu = new ContextMenu(new[] {
-                    new MenuItem("Info", delegate { new InfoBox().Show(); }),
+                    new MenuItem("Info", delegate { new InfoBox { Version = Version }.Show(); }),
                     new MenuItem("Quit", delegate { Application.Exit(); })
                 })
             };

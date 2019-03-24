@@ -12,6 +12,8 @@ namespace pWindowJax
 {
     public partial class InfoBox : Form
     {
+        public string Version { set => versionLabel.Text = value; }
+
         public InfoBox()
         {
             InitializeComponent();

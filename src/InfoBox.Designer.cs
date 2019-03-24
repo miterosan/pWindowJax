@@ -12,6 +12,9 @@ namespace pWindowJax
         private System.Windows.Forms.LinkLabel madebyLink;
         private System.Windows.Forms.LinkLabel RepositoryLink;
         private System.Windows.Forms.Label repositorylabel;
+        private System.Windows.Forms.Label licenseLabel;
+        private System.Windows.Forms.Label licenseContentLabel;
+        private System.Windows.Forms.Label versionLabel;
 
         /// <summary>
         /// Required designer variable.
@@ -48,6 +51,9 @@ namespace pWindowJax
             this.madebyLink = new System.Windows.Forms.LinkLabel();
             this.RepositoryLink = new System.Windows.Forms.LinkLabel();
             this.repositorylabel = new System.Windows.Forms.Label();
+            this.licenseLabel = new System.Windows.Forms.Label();
+            this.licenseContentLabel = new System.Windows.Forms.Label();
+            this.versionLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // pWindowJaxLabel
@@ -130,11 +136,41 @@ namespace pWindowJax
             this.repositorylabel.TabIndex = 7;
             this.repositorylabel.Text = "Repository:";
             // 
+            // licenseLabel
+            // 
+            this.licenseLabel.AutoSize = true;
+            this.licenseLabel.Location = new System.Drawing.Point(12, 137);
+            this.licenseLabel.Name = "licenseLabel";
+            this.licenseLabel.Size = new System.Drawing.Size(47, 13);
+            this.licenseLabel.TabIndex = 8;
+            this.licenseLabel.Text = "License:";
+            // 
+            // licenseContentLabel
+            // 
+            this.licenseContentLabel.AutoSize = true;
+            this.licenseContentLabel.Location = new System.Drawing.Point(113, 137);
+            this.licenseContentLabel.Name = "licenseContentLabel";
+            this.licenseContentLabel.Size = new System.Drawing.Size(26, 13);
+            this.licenseContentLabel.TabIndex = 9;
+            this.licenseContentLabel.Text = "MIT";
+            // 
+            // versionLabel
+            // 
+            this.versionLabel.AutoSize = true;
+            this.versionLabel.Location = new System.Drawing.Point(144, 22);
+            this.versionLabel.Name = "versionLabel";
+            this.versionLabel.Size = new System.Drawing.Size(37, 13);
+            this.versionLabel.TabIndex = 10;
+            this.versionLabel.Text = "v0.0.0";
+            // 
             // InfoBox
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(334, 149);
+            this.ClientSize = new System.Drawing.Size(334, 162);
+            this.Controls.Add(this.versionLabel);
+            this.Controls.Add(this.licenseContentLabel);
+            this.Controls.Add(this.licenseLabel);
             this.Controls.Add(this.repositorylabel);
             this.Controls.Add(this.RepositoryLink);
             this.Controls.Add(this.madebyLink);
