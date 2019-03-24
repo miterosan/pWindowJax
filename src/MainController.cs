@@ -22,6 +22,7 @@ namespace pWindowJax
                 Visible = true,
 
                 ContextMenu = new ContextMenu(new[] {
+                    new MenuItem("Info", delegate { new InfoBox().Show(); }),
                     new MenuItem("Quit", delegate { Application.Exit(); })
                 })
             };

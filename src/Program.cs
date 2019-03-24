@@ -20,7 +20,6 @@ namespace pWindowJax
 
                 updateManager.CreateShortcutsForExecutable(Assembly.GetEntryAssembly().Location, ShortcutLocation.Startup, false);
             }
-            
 
             Application.Run(new MainController());
         }

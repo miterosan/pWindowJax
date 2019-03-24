@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net471</TargetFramework>
     <ApplicationIcon>icon.ico</ApplicationIcon>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,8 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="InfoBox.cs">
+
+    <Compile Update="InfoBox.Designer.cs">
       <SubType>Form</SubType>
+      <DependentUpon>InfoBox.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 
