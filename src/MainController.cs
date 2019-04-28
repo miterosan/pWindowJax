@@ -14,6 +14,18 @@ namespace pWindowJax
         private readonly NotifyIcon notifyIcon;
         private readonly GlobalKeyCombinationWatcher<WindowJaxOperation> watcher = new GlobalKeyCombinationWatcher<WindowJaxOperation>();
 
+        /// <summary>
+        /// Position of the window when move/resize operation began.
+        /// </summary>
+        private Point initialMousePosition;
+
+        /// <summary>
+        /// Size of the window when move/resize operation began.
+        /// </summary>
+        private Rectangle initialWindowRect;
+
+        WindowJaxOperation currentOperation = WindowJaxOperation.Idle;
+
         public MainController()
         {
             notifyIcon = new NotifyIcon
@@ -50,7 +62,7 @@ namespace pWindowJax
             Visible = false;
         }
 
-        void actionChanged()
+        private void actionChanged()
         {
             if (watcher.CurrentAction == currentOperation)
                 return;
@@ -65,19 +77,7 @@ namespace pWindowJax
             startOp(watcher.CurrentAction);
         }
 
-        /// <summary>
-        /// Position of the window when move/resize operation began.
-        /// </summary>
-        Point initialMousePosition;
-
-        /// <summary>
-        /// Size of the window when move/resize operation began.
-        /// </summary>
-        Rectangle initialWindowRect;
-
-        WindowJaxOperation currentOperation = WindowJaxOperation.Idle;
-
-        void startOp(WindowJaxOperation operation)
+        private void startOp(WindowJaxOperation operation)
         {
             currentOperation = operation;
 
