@@ -5,6 +5,8 @@ using System.Threading;
 using System.Reflection;
 using PInvoke;
 using System.Collections.Generic;
+using System.IO;
+using System.Drawing.Imaging;
 
 namespace pWindowJax
 {
@@ -67,6 +69,8 @@ namespace pWindowJax
             if (watcher.CurrentAction == currentOperation)
                 return;
 
+            updateIcon();
+
             // end the current operation if the combination is released
             if (watcher.CurrentAction == WindowJaxOperation.Idle || currentOperation != WindowJaxOperation.Idle)
             {
@@ -75,6 +79,31 @@ namespace pWindowJax
             }
 
             startOp(watcher.CurrentAction);
+        }
+
+        private void updateIcon()
+        {
+            switch (watcher.CurrentAction)
+            {
+                case WindowJaxOperation.Idle:
+                    notifyIcon.Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("pWindowJax.icon.ico"));
+                    break;
+                case WindowJaxOperation.WindowReposition:
+                    notifyIcon.Icon = toIcon(Cursors.WaitCursor);
+                    break;
+                case WindowJaxOperation.WindowResize:
+                    notifyIcon.Icon = toIcon(Cursors.SizeAll);
+                    break;
+            }
+        }
+
+        private Icon toIcon(Cursor cursor)
+        {
+            var bitmap = new Bitmap(32, 32);
+            using (var graphics = Graphics.FromImage(bitmap))
+                cursor.Draw(graphics, new Rectangle(0, 0, 32, 32));
+
+            return Icon.FromHandle(bitmap.GetHicon());
         }
 
         private void startOp(WindowJaxOperation operation)

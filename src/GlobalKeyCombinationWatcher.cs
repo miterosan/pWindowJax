@@ -63,6 +63,8 @@ namespace pWindowJax
 
         private void validatePressedKeys()
         {
+            return;
+
             var oldKeys = new List<Keys>();
 
             foreach (var key in pressedKeys)
