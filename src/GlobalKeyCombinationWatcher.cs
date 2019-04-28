@@ -1,6 +1,7 @@
 ﻿using Gma.System.MouseKeyHook;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace pWindowJax
@@ -8,7 +9,7 @@ namespace pWindowJax
     internal class GlobalKeyCombinationWatcher<T>
     {
         private readonly IKeyboardEvents keyboardEvents = Hook.GlobalEvents();
-        private readonly HashSet<Keys> pressedKeys = new HashSet<Keys>();
+        private readonly Dictionary<Keys, Keys> pressedKeys = new Dictionary<Keys, Keys>();
 
         public Dictionary<HashSet<Keys>, T> KeyCombinations = new Dictionary<HashSet<Keys>, T>();
 
@@ -32,7 +33,7 @@ namespace pWindowJax
             if (currentActiveCombination.Contains(key))
             {
                 currentActiveCombination = null;
-                CurrentAction = default(T);
+                CurrentAction = default;
                 ActionChanged?.Invoke();
             }
         }
@@ -41,12 +42,16 @@ namespace pWindowJax
         {
             Keys key = (Keys)e.KeyValue;
 
-            if (!pressedKeys.Add(key))
+            if (pressedKeys.ContainsKey(key))
                 return;
 
-            foreach(var pair in KeyCombinations)
+            pressedKeys.Add(key, e.KeyCode);
+
+            validatePressedKeys();
+
+            foreach (var pair in KeyCombinations)
             {
-                if (pair.Key.IsSubsetOf(pressedKeys))
+                if (pair.Key.IsSubsetOf(pressedKeys.Select(p => p.Key)))
                 {
                     currentActiveCombination = pair.Key;
                     CurrentAction = pair.Value;
@@ -54,6 +59,20 @@ namespace pWindowJax
                     break;
                 }
             }
+        }
+
+        private void validatePressedKeys()
+        {
+            var oldKeys = new List<Keys>();
+
+            foreach (var key in pressedKeys)
+            {
+                if (PInvoke.User32.GetKeyState((int)key.Value) == 0)
+                    oldKeys.Add(key.Key);
+            }
+
+            foreach (var key in oldKeys)
+                pressedKeys.Remove(key);
         }
     }
 }
