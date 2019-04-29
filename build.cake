@@ -14,7 +14,7 @@ var target = Argument("target", "Package");
 var configuration = "Release";
 var pWindowJaxProject = new FilePath("src/pWindowJax.csproj");
 var pWindowJaxNuspec = new FilePath("pWindowJax.nuspec");
-var buildOutputDirectory = new DirectoryPath($"src/bin/{configuration}/net471/");
+var buildOutputDirectory = new DirectoryPath($"src/bin/{configuration}/net472/");
 var artifactsDirectory = new DirectoryPath("artifacts");
 var version = GitVersion();
 
