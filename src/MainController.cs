@@ -7,6 +7,7 @@ using PInvoke;
 using System.Collections.Generic;
 using System.IO;
 using System.Drawing.Imaging;
+using System.Windows.Threading;
 
 namespace pWindowJax
 {
@@ -78,7 +79,12 @@ namespace pWindowJax
                 return;
             }
 
-            startOp(watcher.CurrentAction);
+            new Thread(() => 
+            {
+
+                startOp(watcher.CurrentAction);
+
+            }).Start();
         }
 
         private void updateIcon()
@@ -118,7 +124,9 @@ namespace pWindowJax
             if (windowHandle == null)
                 return;
 
-            WindowsWindowHelper.EnsureWindowIsInForeground(windowHandle, Handle);
+            Invoke((Action) (() => {
+                WindowsWindowHelper.EnsureWindowIsInForeground(windowHandle, Handle);
+            }));
 
             initialWindowRect = WindowsWindowHelper.GetWindowRect(windowHandle);
 
